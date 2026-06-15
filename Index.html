@@ -1,1 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Widget Fans TikTok Live - Edición Estética Premium</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1e1e24; 
+            overflow: hidden;
+            /* Aplicamos la nueva tipografía a todo el widget */
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        #widget-container {
+            position: relative;
+            width: 100%;  
+            height: 100vh; 
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+        }
+
+        /* --- ESTILOS DEL PELUCHE Y NOMBRE --- */
+        .fan-card {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .fan-card.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .peluche-wrapper {
+            position: relative;
+            width: 320px; 
+        }
+
+        .peluche-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* --- NUEVA BURBUJA DE TEXTO ESTILO TWITCH/MODERNO --- */
+        .fan-name {
+            background: rgba(0, 0, 0, 0.65); /* Fondo negro translúcido elegante */
+            backdrop-filter: blur(4px);      /* Micro desenfoque de fondo detrás de la burbuja */
+            color: #ffffff;                  /* Texto blanco limpio */
+            padding: 8px 20px;
+            border-radius: 30px;             /* Bordes ultra redondeados */
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2); /* Borde sutil brillante */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            margin-bottom: 14px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 15;
+        }
+
+        /* --- CONTENEDOR DEL CORAZÓN --- */
+        .badge-fixed-container {
+            position: absolute;
+            bottom: calc(50vh - 160px); 
+            width: 110px;               
+            height: 110px;              
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; 
+            transform-origin: center bottom;
+            animation: palpitar 1.4s infinite ease-in-out;
+        }
+
+        .corazon-img {
+            width: 100% !important;     
+            height: 100% !important;
+            object-fit: contain;        
+            display: block;
+        }
+
+        /* --- NUEVO ESTILO DEL NÚMERO (COLOR BORDADO CAFÉ PASTEL) --- */
+        .level-number {
+            position: absolute;
+            top: 45%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 26px;    
+            font-weight: 700;
+            color: #f5f4f0; /* Color marrón suave/pastel que simula costura real sobre el rosa */
+            /* Quitamos el borde blanco chillón por sombras suaves de profundidad */
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6); 
+            text-align: center;
+            z-index: 15;
+            transition: opacity 0.2s ease;
+        }
+
+        /* --- ANIMACIÓN DE LATIDO --- */
+        @keyframes palpitar {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.06); } 
+            60% { transform: scale(0.97); }  
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="widget-container">
+        <div class="badge-fixed-container">
+            <img id="corazon-estatico" class="corazon-img" src="https://i.imgur.com/w8h8G09.png" alt="Corazón Nivel">
+            <div id="level-number-static" class="level-number">0</div>
+        </div>
+    </div>
+
+<script>
+    const fans = [
+        { nombre: "miamor",       nivel: 43, imagen: "https://i.imgur.com/dJoJXXA.png" },
+      { nombre: "Winter_kuin", nivel: 40, imagen: "https://i.imgur.com/6CdhqTj.png" },
+        { nombre: "Flippy",       nivel: 39, imagen: "https://i.imgur.com/vHKr0WH.png" },
+       { nombre: "Solis", nivel: 36, imagen: "https://i.imgur.com/uhChAmh.png" },
+        { nombre: "HoneyBadger",       nivel: 35, imagen: "https://i.imgur.com/Xxjfc3R.png" },
+        { nombre: "Andy Galaz",       nivel: 34, imagen: "https://i.imgur.com/nRcRUu8.png" }, 
+      { nombre: "BryanCelis",       nivel: 32, imagen: "https://i.imgur.com/xbTSYR3.png" },
+        { nombre: "Jpiier",       nivel: 31, imagen: "https://i.imgur.com/KVkoKea.png" },
+       { nombre: "Kevinsito", nivel: 29, imagen: "https://i.imgur.com/Tr8ueIv.png" },
+        { nombre: "AngelMX",       nivel: 29, imagen: "https://i.imgur.com/yRNhPo3.png" },
+        { nombre: "Pepsiman",       nivel: 26, imagen: "https://i.imgur.com/Sh20pkV.png" }
+    ];
+
+    const TIEMPO_MOSTRAR = 5000; 
+    const TIEMPO_TRANSICION = 600; 
+
+    const container = document.getElementById('widget-container');
+    const staticLevelEl = document.getElementById('level-number-static');
+    let currentIndex = 0;
+
+    function renderFan(index) {
+        const fan = fans[index];
+        const card = document.createElement('div');
+        card.className = 'fan-card';
+        
+        card.innerHTML = `
+            <div class="fan-name">${fan.nombre}</div>
+            <div class="peluche-wrapper">
+                <img class="peluche-img" src="${fan.imagen}" alt="${fan.nombre}">
+            </div>
+        `;
+        
+        container.appendChild(card);
+        
+        staticLevelEl.style.opacity = "0";
+        setTimeout(() => {
+            staticLevelEl.innerText = fan.nivel;
+            staticLevelEl.style.opacity = "1";
+        }, 200);
+        
+        setTimeout(() => {
+            card.classList.add('active');
+        }, 50);
+
+        setTimeout(() => {
+            card.classList.remove('active');
+            setTimeout(() => {
+                card.remove();
+                currentIndex = (currentIndex + 1) % fans.length;
+                renderFan(currentIndex);
+            }, TIEMPO_TRANSICION);
+        }, TIEMPO_MOSTRAR);
+    }
+
+    if (fans.length > 0) {
+        renderFan(currentIndex);
+    }
+</script>
+</body>
+</html>
